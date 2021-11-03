@@ -1,0 +1,487 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>main</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-11-03"><meta name="DC.source" content="main.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">Definitions:</a></li><li><a href="#3">Kalman Filter Equations</a></li><li><a href="#4">Setup</a></li><li><a href="#5">Set simulation parameters</a></li><li><a href="#6">Set up KF model</a></li><li><a href="#7">Main loop</a></li><li><a href="#8">Post-processing</a></li><li><a href="#9">Plot the 3D environment</a></li><li><a href="#10">Plot the error</a></li><li><a href="#11">Helper functions</a></li></ul></div><h2 id="1">Introduction</h2><pre class="codeinput"><span class="comment">% This is an example MATLAB script designed to show an example of using a</span>
+<span class="comment">% Kalman Filter (KF) to filter noisy data from a plane flying past a</span>
+<span class="comment">% ground-based RADAR installation.</span>
+<span class="comment">%</span>
+<span class="comment">% The example is partially based on the tutorial here:</span>
+<span class="comment">% &lt;https://www.intechopen.com/chapters/63164&gt;</span>
+<span class="comment">% and the example in Chapter 3 of Optimal Filtering</span>
+<span class="comment">% &lt;https://www.google.com.au/books/edition/Optimal_Filtering/iYMqLQp49UMC?hl=en&gt;</span>
+<span class="comment">%</span>
+<span class="comment">% The scenario is that a ground-based RADAR is positioned at the origin and</span>
+<span class="comment">% a plane is flying past at relatively low speeds and is modelled as moving</span>
+<span class="comment">% at a velocity v0 with random accelerations governed by a zero-mean</span>
+<span class="comment">% Gaussian noise model</span>
+<span class="comment">%</span>
+</pre><h2 id="2">Definitions:</h2><p>Our process model is</p><p><img src="main_eq03146170657949502163.png" alt="$\mathbf{x}_{k} = F \mathbf{x}_{k-1} + \mathbf{w}_{k-1}$"></p><p>where * F is the state transition matrix * x is the state vector * w is a zero mean Gaussian with covariance Q (i.e. <img src="main_eq07191377276197678116.png" alt="$\mathbf{w}_{k-1} \sim N(0, Q)$">)</p><p>Our measurement model is</p><p><img src="main_eq16793851022616045200.png" alt="$$z_{k}=H \mathbf{x}_{k}+\mathbf{\nu}_{k}$$"></p><p>where</p><div><ul><li>zk is the measurement vector</li><li>H is the output/measurement matrix</li><li>vk is the measurement noise (<img src="main_eq02220763408623564674.png" alt="$\mathbf{\nu}_{k} \sim N(0, R)$">)</li></ul></div><p>Our state vector captures the positions and velocities of the plane:</p><p><img src="main_eq12988075555978768168.png" alt="$$&#xA;\mathbf{x}_{k}=\left[\begin{array}{c}&#xA;x_{k} \\&#xA;\dot{x}_{k} \\&#xA;y_{k} \\&#xA;\dot{y}_{k} \\&#xA;z_{k} \\&#xA;\dot{z}_{k} \\&#xA;\end{array}\right]&#xA;$$"></p><p>The covariance of the estimate is given by <img src="main_eq10702932451475004909.png" alt="$\mathbf{P}_{k}$">. Hats indicate estimates</p><h2 id="3">Kalman Filter Equations</h2><p>Predicted State Estimate: <img src="main_eq01697405986732632521.png" alt="$\hat{\mathbf{x}}_{k}=F \hat{\mathbf{x}}_{k-1}^{+}+B \mathbf{u}_{k-1}$"></p><p>Predicted Error Covariance: <img src="main_eq12804078056881262385.png" alt="$P_{k}^{-}=F P_{k-1}^{+} F^{T}+Q$"></p><p>Measurement residual: <img src="main_eq03501331157999539728.png" alt="$\widetilde{\mathbf{y}}_{k}=z_{k}-H \hat{\mathbf{x}}_{k}^{-}$"></p><p>Kalman gain: <img src="main_eq06866669348097085101.png" alt="$K_{k}=P_{k}^{-} H^{T}\left(R+H P_{k}^{-} H^{T}\right)^{-1}$"></p><p>Updated State estimate: <img src="main_eq15713672960813362335.png" alt="$\hat{\mathbf{x}}_{k}^{+}=\hat{\mathbf{x}}_{k}^{-}+K_{k} \widetilde{\mathbf{y}}$"></p><p>Updated error covariance: <img src="main_eq15950474075727419284.png" alt="$P_{k}^{+}=\left(I-K_{k} H\right) P_{k}^{-}$"></p><h2 id="4">Setup</h2><pre class="codeinput">clear;
+clc;
+rng(2);
+</pre><h2 id="5">Set simulation parameters</h2><pre class="codeinput"><span class="comment">% Boxsize of simulation [m]</span>
+bs = 100;
+
+<span class="comment">% Length of simulation [s]</span>
+tmax = 100;
+
+<span class="comment">% Number of steps</span>
+n_steps = 1000;
+
+<span class="comment">% std of measurement model</span>
+sigma_xyz = 5;
+
+<span class="comment">% std of acceleration in process model</span>
+sigma_a = 0.1;
+
+<span class="comment">% Velocity of plane [m/s]</span>
+v0 = bs/tmax;
+
+<span class="comment">% Initial position of plane</span>
+x = [
+    bs/4;
+    0;
+    bs/1;
+    -v0;
+    bs/4;
+    0;
+    ];
+
+
+dt = tmax/n_steps;
+t  = linspace(0, tmax, n_steps);
+</pre><h2 id="6">Set up KF model</h2><pre class="codeinput"><span class="comment">% Generate the matrices needed for the filter and process</span>
+F = get_F(dt);
+Q = get_Q(dt, sigma_a);
+H = get_H();
+R = get_R(sigma_xyz);
+I = eye(6);
+
+<span class="comment">% Prior state estimate</span>
+x_hat = x(:);
+
+<span class="comment">% Prior covariance estimate</span>
+P_hat = eye(6);
+</pre><h2 id="7">Main loop</h2><pre class="codeinput">ground_truth = zeros(6, n_steps);
+state_estimates = zeros(6, n_steps);
+measurements = zeros(3, n_steps);
+mu_process = zeros(6, 1);
+mu_measure = zeros(3, 1);
+
+<span class="keyword">for</span> k = 1:n_steps
+
+    <span class="comment">% Find the ground truth results</span>
+    wk = mvnrnd(mu_process, Q)';
+    vk = mvnrnd(mu_measure, R)';
+    x = F * x + wk;
+    z = H * x + vk;
+
+    <span class="comment">% Filter estimates</span>
+
+    <span class="comment">% Prediction step (a priori estimate)</span>
+    x_hat = F * x_hat;
+    P_hat = F * P_hat * F' + Q;
+
+    <span class="comment">% Update step</span>
+    <span class="comment">% Measurement residual</span>
+    y_t = z - H * x_hat;
+
+    <span class="comment">% Kalman gain</span>
+    K = P_hat * H' / (R + H * P_hat * H');
+
+    <span class="comment">% Updated state estimate (a posteriori estimate)</span>
+    x_hat = x_hat + K * y_t;
+    P_hat = (I - K * H) * P_hat;
+
+    <span class="comment">% Record results</span>
+    ground_truth(:, k) = x;
+    measurements(:, k) = z;
+    state_estimates(:, k) = x_hat;
+<span class="keyword">end</span>
+</pre><h2 id="8">Post-processing</h2><pre class="codeinput">gt_pos  = H * ground_truth;
+est     = H * state_estimates;
+err     = sqrt(sum((est - gt_pos).^2, 1));
+moverr  = movmean(err, 50);
+</pre><h2 id="9">Plot the 3D environment</h2><pre class="codeinput">f = figure(1);
+hold <span class="string">on</span>;
+plot3(0, 0, 0, <span class="string">'ro'</span>)
+plot3(gt_pos(1, :), gt_pos(2, :), gt_pos(3, :), <span class="string">'b-'</span>)
+plot3(est(1, :), est(2, :), est(3, :), <span class="string">'g-'</span>)
+plot3(measurements(1, :), measurements(2, :), measurements(3, :), <span class="string">'r.'</span>)
+axis <span class="string">equal</span>;
+legend(<span class="string">"Radar"</span>, <span class="string">"Flight path"</span>, <span class="string">"Estimate"</span>, <span class="string">"Measurements"</span>)
+title(<span class="string">"Path of object in relation to RADAR"</span>);
+xlabel(<span class="string">"x [m]"</span>);
+ylabel(<span class="string">"y [m]"</span>);
+zlabel(<span class="string">"z [m]"</span>);
+grid <span class="string">on</span>;
+hold <span class="string">off</span>;
+<span class="comment">% saveas(f, "./figs/flight_path.png")</span>
+</pre><img vspace="5" hspace="5" src="main_01.png" alt=""> <h2 id="10">Plot the error</h2><pre class="codeinput">g = figure(2);
+hold <span class="string">on</span>;
+plot(t, err)
+plot(t, moverr)
+legend(<span class="string">"Error"</span>, <span class="string">"Moving mean of error"</span>);
+title(<span class="string">"Error in KF Model"</span>);
+xlabel(<span class="string">"Time [s]"</span>);
+ylabel(<span class="string">"Error [m]"</span>);
+grid <span class="string">on</span>;
+hold <span class="string">off</span>;
+<span class="comment">% saveas(g, "./figs/model_error.png")</span>
+</pre><img vspace="5" hspace="5" src="main_02.png" alt=""> <h2 id="11">Helper functions</h2><pre class="codeinput"><span class="keyword">function</span> F = get_F(dt)
+    F = [
+        1, dt, 0, 0, 0, 0;
+        0, 1, 0, 0, 0, 0;
+        0, 0, 1, dt, 0, 0;
+        0, 0, 0, 1, 0, 0;
+        0, 0, 0, 0, 1, dt;
+        0, 0, 0, 0, 0, 1;
+        ];
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> Q = get_Q(dt, sigma_m)
+    G = [
+        1/2 * dt ^ 2;
+        dt;
+        1/2 * dt ^ 2;
+        dt;
+        1/2 * dt ^ 2;
+        dt;
+        ];
+    Q = G * G' * sigma_m ^ 2;
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> H = get_H()
+    H = [
+        1, 0, 0, 0, 0, 0;
+        0, 0, 1, 0, 0, 0;
+        0, 0, 0, 0, 1, 0;
+        ];
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> R = get_R(sigma_xyz)
+    R = zeros(3, 3);
+    R(1, 1) = sigma_xyz ^ 2;
+    R(2, 2) = sigma_xyz ^ 2;
+    R(3, 3) = sigma_xyz ^ 2;
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Introduction
+
+% This is an example MATLAB script designed to show an example of using a
+% Kalman Filter (KF) to filter noisy data from a plane flying past a
+% ground-based RADAR installation. 
+%
+% The example is partially based on the tutorial here:
+% <https://www.intechopen.com/chapters/63164> 
+% and the example in Chapter 3 of Optimal Filtering 
+% <https://www.google.com.au/books/edition/Optimal_Filtering/iYMqLQp49UMC?hl=en>
+% 
+% The scenario is that a ground-based RADAR is positioned at the origin and
+% a plane is flying past at relatively low speeds and is modelled as moving
+% at a velocity v0 with random accelerations governed by a zero-mean
+% Gaussian noise model
+%
+%% Definitions:
+% 
+% Our process model is
+% 
+% $\mathbf{x}_{k} = F \mathbf{x}_{k-1} + \mathbf{w}_{k-1}$
+% 
+% where
+% * F is the state transition matrix
+% * x is the state vector
+% * w is a zero mean Gaussian with covariance Q (i.e. $\mathbf{w}_{k-1} \sim N(0, Q)$)
+% 
+% Our measurement model is
+% 
+% $$z_{k}=H \mathbf{x}_{k}+\mathbf{\nu}_{k}$$
+% 
+% where
+% 
+% * zk is the measurement vector
+% * H is the output/measurement matrix
+% * vk is the measurement noise ($\mathbf{\nu}_{k} \sim N(0, R)$)
+% 
+%
+% Our state vector captures the positions and velocities of the plane:
+%
+% $$
+% \mathbf{x}_{k}=\left[\begin{array}{c}
+% x_{k} \\
+% \dot{x}_{k} \\
+% y_{k} \\
+% \dot{y}_{k} \\
+% z_{k} \\
+% \dot{z}_{k} \\
+% \end{array}\right]
+% $$
+%
+% The covariance of the estimate is given by $\mathbf{P}_{k}$. Hats
+% indicate estimates
+%
+
+%% Kalman Filter Equations
+% 
+% Predicted State Estimate:
+% $\hat{\mathbf{x}}_{k}=F \hat{\mathbf{x}}_{k-1}^{+}+B \mathbf{u}_{k-1}$
+% 
+% Predicted Error Covariance:
+% $P_{k}^{-}=F P_{k-1}^{+} F^{T}+Q$
+%
+% Measurement residual:
+% $\widetilde{\mathbf{y}}_{k}=z_{k}-H \hat{\mathbf{x}}_{k}^{-}$
+%
+% Kalman gain:
+% $K_{k}=P_{k}^{-} H^{T}\left(R+H P_{k}^{-} H^{T}\right)^{-1}$
+%
+% Updated State estimate:
+% $\hat{\mathbf{x}}_{k}^{+}=\hat{\mathbf{x}}_{k}^{-}+K_{k} \widetilde{\mathbf{y}}$
+%
+% Updated error covariance:
+% $P_{k}^{+}=\left(I-K_{k} H\right) P_{k}^{-}$
+
+%% Setup
+
+clear;
+clc;
+rng(2);
+
+
+%% Set simulation parameters
+
+% Boxsize of simulation [m]
+bs = 100;
+
+% Length of simulation [s]
+tmax = 100;
+
+% Number of steps
+n_steps = 1000;
+
+% std of measurement model
+sigma_xyz = 5;
+
+% std of acceleration in process model
+sigma_a = 0.1;
+
+% Velocity of plane [m/s]
+v0 = bs/tmax;
+
+% Initial position of plane
+x = [
+    bs/4;
+    0;
+    bs/1;
+    -v0;
+    bs/4;
+    0;
+    ];
+
+
+dt = tmax/n_steps;
+t  = linspace(0, tmax, n_steps);
+
+%% Set up KF model
+
+% Generate the matrices needed for the filter and process
+F = get_F(dt);
+Q = get_Q(dt, sigma_a);
+H = get_H();
+R = get_R(sigma_xyz);
+I = eye(6);
+
+% Prior state estimate
+x_hat = x(:);
+
+% Prior covariance estimate
+P_hat = eye(6);
+
+%% Main loop
+
+ground_truth = zeros(6, n_steps);
+state_estimates = zeros(6, n_steps);
+measurements = zeros(3, n_steps);
+mu_process = zeros(6, 1);
+mu_measure = zeros(3, 1);
+
+for k = 1:n_steps
+    
+    % Find the ground truth results
+    wk = mvnrnd(mu_process, Q)';
+    vk = mvnrnd(mu_measure, R)';
+    x = F * x + wk;
+    z = H * x + vk;
+        
+    % Filter estimates
+    
+    % Prediction step (a priori estimate)
+    x_hat = F * x_hat;
+    P_hat = F * P_hat * F' + Q;
+    
+    % Update step
+    % Measurement residual
+    y_t = z - H * x_hat;
+    
+    % Kalman gain
+    K = P_hat * H' / (R + H * P_hat * H'); 
+    
+    % Updated state estimate (a posteriori estimate)
+    x_hat = x_hat + K * y_t;
+    P_hat = (I - K * H) * P_hat;
+    
+    % Record results
+    ground_truth(:, k) = x;
+    measurements(:, k) = z;
+    state_estimates(:, k) = x_hat;
+end
+
+%% Post-processing
+
+gt_pos  = H * ground_truth;
+est     = H * state_estimates;
+err     = sqrt(sum((est - gt_pos).^2, 1));
+moverr  = movmean(err, 50);
+
+
+%% Plot the 3D environment
+
+f = figure(1);
+hold on;
+plot3(0, 0, 0, 'ro')
+plot3(gt_pos(1, :), gt_pos(2, :), gt_pos(3, :), 'b-')
+plot3(est(1, :), est(2, :), est(3, :), 'g-')
+plot3(measurements(1, :), measurements(2, :), measurements(3, :), 'r.')
+axis equal;
+legend("Radar", "Flight path", "Estimate", "Measurements")
+title("Path of object in relation to RADAR");
+xlabel("x [m]");
+ylabel("y [m]");
+zlabel("z [m]");
+grid on;
+hold off;
+% saveas(f, "./figs/flight_path.png")
+
+%% Plot the error
+
+g = figure(2);
+hold on;
+plot(t, err)
+plot(t, moverr)
+legend("Error", "Moving mean of error");
+title("Error in KF Model");
+xlabel("Time [s]");
+ylabel("Error [m]");
+grid on;
+hold off;
+% saveas(g, "./figs/model_error.png")
+
+%% Helper functions
+
+function F = get_F(dt)
+    F = [
+        1, dt, 0, 0, 0, 0;
+        0, 1, 0, 0, 0, 0;
+        0, 0, 1, dt, 0, 0;
+        0, 0, 0, 1, 0, 0;
+        0, 0, 0, 0, 1, dt;
+        0, 0, 0, 0, 0, 1;
+        ];
+end
+
+function Q = get_Q(dt, sigma_m)
+    G = [
+        1/2 * dt ^ 2;
+        dt;
+        1/2 * dt ^ 2;
+        dt;
+        1/2 * dt ^ 2;
+        dt;
+        ];
+    Q = G * G' * sigma_m ^ 2;
+end
+
+function H = get_H()
+    H = [
+        1, 0, 0, 0, 0, 0;
+        0, 0, 1, 0, 0, 0;
+        0, 0, 0, 0, 1, 0;
+        ];
+end
+
+function R = get_R(sigma_xyz)
+    R = zeros(3, 3);
+    R(1, 1) = sigma_xyz ^ 2;
+    R(2, 2) = sigma_xyz ^ 2;
+    R(3, 3) = sigma_xyz ^ 2;
+end
+
+
+##### SOURCE END #####
+--></body></html>
